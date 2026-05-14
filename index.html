@@ -1,0 +1,764 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flayzex Test System</title>
+
+<style>
+*{
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:Arial,sans-serif;
+}
+
+body{
+background:#121212;
+color:white;
+min-height:100vh;
+}
+
+.hidden{
+display:none;
+}
+
+header{
+padding:20px;
+text-align:center;
+font-size:28px;
+font-weight:bold;
+background:#1c1c1c;
+box-shadow:0 0 10px rgba(0,0,0,.4);
+}
+
+.container{
+max-width:900px;
+margin:auto;
+padding:20px;
+}
+
+.card{
+background:#1f1f1f;
+padding:20px;
+border-radius:20px;
+margin-bottom:20px;
+box-shadow:0 0 15px rgba(0,0,0,.3);
+}
+
+input,button,select{
+width:100%;
+padding:14px;
+border:none;
+border-radius:12px;
+margin-top:10px;
+font-size:16px;
+}
+
+input,select{
+background:#2b2b2b;
+color:white;
+}
+
+button{
+cursor:pointer;
+background:#8e7dff;
+color:white;
+font-weight:bold;
+transition:.2s;
+}
+
+button:hover{
+transform:scale(1.02);
+background:#9f91ff;
+}
+
+.question{
+font-size:22px;
+margin-bottom:20px;
+}
+
+.option{
+background:#2b2b2b;
+padding:15px;
+border-radius:14px;
+margin-bottom:12px;
+cursor:pointer;
+transition:.2s;
+border:2px solid transparent;
+}
+
+.option:hover{
+background:#383838;
+}
+
+.selected{
+border:2px solid #8e7dff;
+}
+
+.correct{
+background:#1e7d32 !important;
+}
+
+.wrong{
+background:#c62828 !important;
+}
+
+.topbar{
+display:flex;
+justify-content:space-between;
+align-items:center;
+margin-bottom:20px;
+gap:10px;
+}
+
+.small-btn{
+width:auto;
+padding:10px 16px;
+}
+
+.favorite{
+float:right;
+font-size:24px;
+cursor:pointer;
+color:#777;
+}
+
+.favorite.active{
+color:gold;
+}
+
+.timer{
+font-size:20px;
+font-weight:bold;
+}
+
+.nav{
+display:flex;
+gap:10px;
+margin-top:20px;
+}
+
+.result{
+font-size:26px;
+text-align:center;
+margin-bottom:20px;
+}
+
+.review-box{
+background:#222;
+padding:15px;
+border-radius:14px;
+margin-bottom:15px;
+}
+
+.correct-answer{
+color:#5eff7b;
+margin-top:10px;
+}
+
+.user-answer{
+color:#ff6b6b;
+margin-top:10px;
+}
+</style>
+</head>
+
+<body>
+
+<header>Flayzex Test System</header>
+
+<div class="container">
+
+<div id="loginScreen" class="card">
+<h2>Вход по ключу</h2>
+
+<input type="text" id="accessKey" placeholder="Введите ключ доступа">
+
+<button onclick="activateKey()">Войти</button>
+</div>
+
+<div id="mainScreen" class="hidden">
+
+<div class="card">
+
+<h2>Настройки теста</h2>
+
+<label>Количество вопросов</label>
+<input type="number" id="questionCount" value="20">
+
+<label>Время (минуты, 0 = без времени)</label>
+<input type="number" id="timerInput" value="20">
+
+<label>От вопроса</label>
+<input type="number" id="fromQuestion" value="1">
+
+<label>До вопроса</label>
+<input type="number" id="toQuestion" value="50">
+
+<select id="mode">
+<option value="normal">По порядку</option>
+<option value="random">Случайно</option>
+</select>
+
+<button onclick="startTest()">Начать тест</button>
+
+<button onclick="openStudy()">Изучить тесты</button>
+
+<button onclick="openFavorites()">Избранные</button>
+
+<button onclick="openHistory()">История</button>
+
+</div>
+
+</div>
+
+<div id="testScreen" class="hidden">
+
+<div class="card">
+
+<div class="topbar">
+<div class="timer" id="timer">00:00</div>
+
+<button class="small-btn" onclick="finishTest()">Завершить</button>
+</div>
+
+<div id="questionContainer"></div>
+
+<div class="nav">
+<button onclick="prevQuestion()">Назад</button>
+<button onclick="nextQuestion()">Вперед</button>
+</div>
+
+</div>
+
+</div>
+
+<div id="resultScreen" class="hidden">
+
+<div class="card">
+
+<div class="result" id="resultText"></div>
+
+<button onclick="reviewAnswers()">Просмотреть ответы</button>
+
+<button onclick="goHome()">На главный экран</button>
+
+</div>
+
+</div>
+
+<div id="reviewScreen" class="hidden">
+<div class="card">
+
+<h2>Разбор ответов</h2>
+
+<div id="reviewContainer"></div>
+
+<button onclick="goHome()">Назад</button>
+
+</div>
+</div>
+
+<div id="studyScreen" class="hidden">
+<div class="card">
+
+<h2>Изучить тесты</h2>
+
+<div id="studyContainer"></div>
+
+<button onclick="goHome()">Назад</button>
+
+</div>
+</div>
+
+<div id="favoritesScreen" class="hidden">
+<div class="card">
+
+<h2>Избранные вопросы</h2>
+
+<div id="favoritesContainer"></div>
+
+<button onclick="goHome()">Назад</button>
+
+</div>
+</div>
+
+<div id="historyScreen" class="hidden">
+<div class="card">
+
+<h2>История прохождений</h2>
+
+<div id="historyContainer"></div>
+
+<button onclick="goHome()">Назад</button>
+
+</div>
+</div>
+
+</div>
+
+<script>
+
+const BOT_TOKEN = "ТВОЙ_НОВЫЙ_ТОКЕН";
+const CHAT_ID = "5305261101";
+
+let tests = [];
+let currentQuestions = [];
+let currentIndex = 0;
+let selectedAnswers = {};
+let favorites = JSON.parse(localStorage.getItem("favorites") || "[]");
+let historyData = JSON.parse(localStorage.getItem("history") || "[]");
+let timerInterval;
+let timeLeft = 0;
+
+fetch("micro_tests.json")
+.then(r=>r.json())
+.then(data=>{
+tests = data;
+});
+
+function activateKey(){
+
+let key = document.getElementById("accessKey").value;
+
+if(localStorage.getItem("access_granted")){
+showMain();
+return;
+}
+
+let validKeys = [
+"FLAYZEX2026",
+"TEST2026",
+"OLIMJON"
+];
+
+if(validKeys.includes(key)){
+
+localStorage.setItem("access_granted","true");
+
+sendTelegramLogin();
+
+showMain();
+
+}else{
+alert("Неверный ключ");
+}
+
+}
+
+async function sendTelegramLogin(){
+
+try{
+
+const ipData = await fetch("https://api.ipify.org?format=json").then(r=>r.json());
+
+const device = navigator.userAgent;
+
+const time = new Date().toLocaleString();
+
+const text =
+`🔐 Новый вход
+
+🕒 ${time}
+
+🌐 IP: ${ipData.ip}
+
+💻 Устройство:
+${device}`;
+
+fetch(`https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`,{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+chat_id:CHAT_ID,
+text:text
+})
+});
+
+}catch(e){
+console.log(e);
+}
+
+}
+
+function showMain(){
+
+hideAll();
+
+document.getElementById("mainScreen").classList.remove("hidden");
+
+}
+
+function hideAll(){
+
+document.getElementById("loginScreen").classList.add("hidden");
+document.getElementById("mainScreen").classList.add("hidden");
+document.getElementById("testScreen").classList.add("hidden");
+document.getElementById("resultScreen").classList.add("hidden");
+document.getElementById("reviewScreen").classList.add("hidden");
+document.getElementById("studyScreen").classList.add("hidden");
+document.getElementById("favoritesScreen").classList.add("hidden");
+document.getElementById("historyScreen").classList.add("hidden");
+
+}
+
+function startTest(){
+
+hideAll();
+
+document.getElementById("testScreen").classList.remove("hidden");
+
+let count = parseInt(document.getElementById("questionCount").value);
+
+let from = parseInt(document.getElementById("fromQuestion").value)-1;
+
+let to = parseInt(document.getElementById("toQuestion").value);
+
+let mode = document.getElementById("mode").value;
+
+let filtered = tests.slice(from,to);
+
+if(mode==="random"){
+filtered.sort(()=>Math.random()-0.5);
+}
+
+currentQuestions = filtered.slice(0,count);
+
+currentIndex = 0;
+
+selectedAnswers = {};
+
+let minutes = parseInt(document.getElementById("timerInput").value);
+
+if(minutes>0){
+
+timeLeft = minutes*60;
+
+updateTimer();
+
+clearInterval(timerInterval);
+
+timerInterval = setInterval(()=>{
+
+timeLeft--;
+
+updateTimer();
+
+if(timeLeft<=0){
+finishTest();
+}
+
+},1000);
+
+}else{
+document.getElementById("timer").innerText="Без времени";
+}
+
+renderQuestion();
+
+}
+
+function updateTimer(){
+
+let min = Math.floor(timeLeft/60);
+
+let sec = timeLeft%60;
+
+document.getElementById("timer").innerText =
+`${String(min).padStart(2,'0')}:${String(sec).padStart(2,'0')}`;
+
+}
+
+function renderQuestion(){
+
+let q = currentQuestions[currentIndex];
+
+let html = `
+<div class="question">
+
+⭐ <span class="favorite ${favorites.includes(q.question)?'active':''}"
+onclick="toggleFavorite('${q.question.replace(/'/g,"")}')">★</span>
+
+${currentIndex+1}. ${q.question}
+
+</div>
+`;
+
+q.options.forEach((opt,i)=>{
+
+html += `
+<div class="option ${selectedAnswers[currentIndex]===i?'selected':''}"
+onclick="selectOption(${i})">
+${opt}
+</div>
+`;
+
+});
+
+document.getElementById("questionContainer").innerHTML = html;
+
+}
+
+function selectOption(i){
+
+selectedAnswers[currentIndex]=i;
+
+renderQuestion();
+
+}
+
+function nextQuestion(){
+
+if(currentIndex<currentQuestions.length-1){
+
+currentIndex++;
+
+renderQuestion();
+
+}
+
+}
+
+function prevQuestion(){
+
+if(currentIndex>0){
+
+currentIndex--;
+
+renderQuestion();
+
+}
+
+}
+
+function finishTest(){
+
+clearInterval(timerInterval);
+
+hideAll();
+
+document.getElementById("resultScreen").classList.remove("hidden");
+
+let correct = 0;
+
+currentQuestions.forEach((q,i)=>{
+
+if(selectedAnswers[i]===q.answer){
+correct++;
+}
+
+});
+
+let percent = Math.round(correct/currentQuestions.length*100);
+
+document.getElementById("resultText").innerHTML =
+`
+Правильных ответов:
+<br><br>
+${correct} из ${currentQuestions.length}
+<br><br>
+${percent}%
+`;
+
+historyData.push({
+date:new Date().toLocaleString(),
+correct,
+total:currentQuestions.length,
+percent
+});
+
+localStorage.setItem("history",JSON.stringify(historyData));
+
+}
+
+function reviewAnswers(){
+
+hideAll();
+
+document.getElementById("reviewScreen").classList.remove("hidden");
+
+let html = "";
+
+currentQuestions.forEach((q,i)=>{
+
+let user = selectedAnswers[i];
+
+html += `
+<div class="review-box">
+
+<div><b>${q.question}</b></div>
+`;
+
+if(user===q.answer){
+
+html += `
+<div class="correct-answer">
+✔ Правильно
+</div>
+`;
+
+}else{
+
+html += `
+<div class="user-answer">
+❌ Ваш ответ:
+${user!=null?q.options[user]:"Нет ответа"}
+</div>
+
+<div class="correct-answer">
+✅ Правильный:
+${q.options[q.answer]}
+</div>
+`;
+
+}
+
+html += `</div>`;
+
+});
+
+document.getElementById("reviewContainer").innerHTML = html;
+
+}
+
+function openStudy(){
+
+hideAll();
+
+document.getElementById("studyScreen").classList.remove("hidden");
+
+let html = "";
+
+tests.forEach((q,i)=>{
+
+html += `
+<div class="review-box">
+
+<div>
+
+⭐ <span class="favorite ${favorites.includes(q.question)?'active':''}"
+onclick="toggleFavorite('${q.question.replace(/'/g,"")}')">★</span>
+
+<b>${i+1}. ${q.question}</b>
+
+</div>
+
+<div style="margin-top:10px;">
+${q.options.map((o,index)=>
+`<div style="margin-top:6px;${index===q.answer?'color:#5eff7b':''}">
+${o}
+</div>`).join("")}
+</div>
+
+</div>
+`;
+
+});
+
+document.getElementById("studyContainer").innerHTML = html;
+
+}
+
+function toggleFavorite(question){
+
+if(favorites.includes(question)){
+
+favorites = favorites.filter(x=>x!==question);
+
+}else{
+
+favorites.push(question);
+
+}
+
+localStorage.setItem("favorites",JSON.stringify(favorites));
+
+renderQuestion();
+
+openFavorites();
+
+}
+
+function openFavorites(){
+
+hideAll();
+
+document.getElementById("favoritesScreen").classList.remove("hidden");
+
+let html = "";
+
+tests.forEach((q,i)=>{
+
+if(favorites.includes(q.question)){
+
+html += `
+<div class="review-box">
+
+<b>${q.question}</b>
+
+<div class="correct-answer">
+✅ ${q.options[q.answer]}
+</div>
+
+</div>
+`;
+
+}
+
+});
+
+document.getElementById("favoritesContainer").innerHTML =
+html || "Нет избранных вопросов";
+
+}
+
+function openHistory(){
+
+hideAll();
+
+document.getElementById("historyScreen").classList.remove("hidden");
+
+let html = "";
+
+historyData.reverse().forEach(h=>{
+
+html += `
+<div class="review-box">
+
+📅 ${h.date}
+<br><br>
+
+✅ ${h.correct}/${h.total}
+<br><br>
+
+📊 ${h.percent}%
+
+</div>
+`;
+
+});
+
+document.getElementById("historyContainer").innerHTML =
+html || "История пуста";
+
+}
+
+function goHome(){
+
+hideAll();
+
+document.getElementById("mainScreen").classList.remove("hidden");
+
+}
+
+if(localStorage.getItem("access_granted")){
+showMain();
+}
+
+</script>
+
+</body>
+</html>
